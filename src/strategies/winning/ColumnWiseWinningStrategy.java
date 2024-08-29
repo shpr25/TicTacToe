@@ -26,4 +26,13 @@ public class ColumnWiseWinningStrategy implements WinningStrategy {
 
         return countMap.get(symbol) == board.getSize();
     }
+
+    @Override
+    public void handleUndo(Board board, Move move) {
+        int col = move.getCell().getColIndex();
+        Character symbol = move.getPlayer().getSymbol();
+
+        Map<Character, Integer> countMap = this.colCountMap.get(col);
+        countMap.put(symbol, countMap.get(symbol)-1);
+    }
 }

@@ -39,4 +39,18 @@ public class DiagonalWiseWinningStrategy implements WinningStrategy {
         return false;
     }
 
+    @Override
+    public void handleUndo(Board board, Move move) {
+        int row = move.getCell().getRowIndex();
+        int col = move.getCell().getColIndex();
+        Character symbol = move.getPlayer().getSymbol();
+
+        if (row == col) {
+            primaryDiagonalCountMap.put(symbol, primaryDiagonalCountMap.get(symbol) - 1);
+        }
+        if (row + col == board.getSize() - 1) {
+            secondaryDiagonalCountMap.put(symbol, secondaryDiagonalCountMap.get(symbol) - 1);
+        }
+    }
+
 }
