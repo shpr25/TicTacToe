@@ -14,7 +14,7 @@ public class Game {
     private Board board;
     private List<Player> players;
     private List<Move> moves;
-    private int currentPlayerIndex;
+    private int nextPlayerIndex;
     private Player winner;
     private GameState state;
     List<WinningStrategy> winningStrategies;
@@ -51,12 +51,12 @@ public class Game {
         this.moves = moves;
     }
 
-    public int getCurrentPlayerIndex() {
-        return currentPlayerIndex;
+    public int getNextPlayerIndex() {
+        return nextPlayerIndex;
     }
 
-    public void setCurrentPlayerIndex(int currentPlayerIndex) {
-        this.currentPlayerIndex = currentPlayerIndex;
+    public void setNextPlayerIndex(int nextPlayerIndex) {
+        this.nextPlayerIndex = nextPlayerIndex;
     }
 
     public Player getWinner() {
@@ -88,7 +88,7 @@ public class Game {
     }
 
     public void makeMove() {
-        Player currentPlayer = this.players.get(currentPlayerIndex);
+        Player currentPlayer = this.players.get(nextPlayerIndex);
         Move move;
 
         do{
@@ -112,7 +112,7 @@ public class Game {
         }
 
         //update the current player index
-        currentPlayerIndex = ((currentPlayerIndex + 1) % players.size());
+        nextPlayerIndex = ((nextPlayerIndex + 1) % players.size());
 
     }
 
@@ -149,7 +149,39 @@ public class Game {
          return new GameBuilder();
     }
 
-     public static class GameBuilder {
+    public void undo() throws Exception {
+        //validate undo is possible or not
+        if(this.moves.size() < 0){
+            throw new Exception("No moves left to undo.");
+        }
+
+        // remove move from moves list
+        Move lastMove = moves.get(moves.size()-1);
+        moves.remove(lastMove);
+
+        // update cell state and remove player from cell
+        lastMove.getCell().setState(CellState.EMPTY);
+        lastMove.getCell().setPlayer(null);
+
+        // undo the winning strategies map
+        winningStrategies.forEach(winningStrategy ->  winningStrategy.handleUndo(this.board, lastMove));
+
+        // update game state and winner
+        setState(GameState.IN_PROGRESS);
+        setWinner(null);
+
+        // reset the current player
+        nextPlayerIndex--;
+        nextPlayerIndex = ((nextPlayerIndex + players.size())% players.size());
+
+    }
+
+    public Player getCurrentPlayer() {
+        int currentIndex = ((nextPlayerIndex - 1 + players.size())% players.size());
+        return players.get(currentIndex);
+    }
+
+    public static class GameBuilder {
         private List<Player> players;
         private int dimension;
         private List<WinningStrategy> winningStrategies;
