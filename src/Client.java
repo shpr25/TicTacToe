@@ -3,8 +3,10 @@ import controller.PlayerController;
 import model.BotDifficultyLevel;
 import model.BotPlayer;
 import model.Game;
+import model.GameState;
 import model.HumanPlayer;
 import strategies.winning.ColumnWiseWinningStrategy;
+import strategies.winning.DiagonalWiseWinningStrategy;
 import strategies.winning.RowWiseWinningStrategy;
 
 import java.util.List;
@@ -17,29 +19,28 @@ public class Client {
 
         RowWiseWinningStrategy rowWiseWinningStrategy = new RowWiseWinningStrategy();
         ColumnWiseWinningStrategy columnWiseWinningStrategy = new ColumnWiseWinningStrategy();
+        DiagonalWiseWinningStrategy diagonalWiseWinningStrategy = new DiagonalWiseWinningStrategy();
 
         GameController gameController = new GameController();
         Game game = null;
         try {
             game = gameController.startGame(3,
                     List.of(humanPlayer, botPlayer),
-                    List.of(rowWiseWinningStrategy, columnWiseWinningStrategy)
+                    List.of(rowWiseWinningStrategy, columnWiseWinningStrategy, diagonalWiseWinningStrategy)
             );
 
-            gameController.display(game);
+            while (gameController.checkState(game, GameState.IN_PROGRESS)) {
+                gameController.display(game);
+                gameController.makeMove(game);
 
-//        while(gameController.checkState(game, GameState.IN_PROGRESS)){
-//            gameController.display(game);
-//            gameController.makeMove(game);
-//
-//            if(gameController.checkState(game, GameState.GAME_WON)){
-//                System.out.println(gameController.getWinner(game).getName() + " wins the game.");
-//                break;
-//            }else if(gameController.checkState(game, GameState.DRAW)){
-//                System.out.println("Game is draw!");
-//                break;
-//            }
-//        }
+                if (gameController.checkState(game, GameState.GAME_WON)) {
+                    System.out.println(gameController.getWinner(game).getName() + " wins the game.");
+                    break;
+                } else if (gameController.checkState(game, GameState.DRAW)) {
+                    System.out.println("Game is draw!");
+                    break;
+                }
+            }
         } catch (Exception e) {
             System.out.println("Error while starting game: " + e.getMessage());
         }

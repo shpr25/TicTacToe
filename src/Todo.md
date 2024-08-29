@@ -1,2 +1,3 @@
 Task
-* implement make a move
+* undo feature
+* medium and hard bot difficulty level implementation

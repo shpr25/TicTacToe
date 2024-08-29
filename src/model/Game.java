@@ -6,6 +6,7 @@ import strategies.validator.GameParamValidator;
 import strategies.validator.UniqueSymbolValidator;
 import strategies.winning.WinningStrategy;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Game {
@@ -13,7 +14,7 @@ public class Game {
     private Board board;
     private List<Player> players;
     private List<Move> moves;
-    private int nextPlayerIndex;
+    private int currentPlayerIndex;
     private Player winner;
     private GameState state;
     List<WinningStrategy> winningStrategies;
@@ -23,6 +24,7 @@ public class Game {
         this.winningStrategies = winningStrategies;
         this.board = new Board(dimension);
         this.state = GameState.IN_PROGRESS;
+        this.moves = new ArrayList<>();
     }
 
     public Board getBoard() {
@@ -49,12 +51,12 @@ public class Game {
         this.moves = moves;
     }
 
-    public int getNextPlayerIndex() {
-        return nextPlayerIndex;
+    public int getCurrentPlayerIndex() {
+        return currentPlayerIndex;
     }
 
-    public void setNextPlayerIndex(int nextPlayerIndex) {
-        this.nextPlayerIndex = nextPlayerIndex;
+    public void setCurrentPlayerIndex(int currentPlayerIndex) {
+        this.currentPlayerIndex = currentPlayerIndex;
     }
 
     public Player getWinner() {
@@ -86,11 +88,61 @@ public class Game {
     }
 
     public void makeMove() {
-        //check the next player
-        //ask player to type the move
-        //store the move
-        //check winner
+        Player currentPlayer = this.players.get(currentPlayerIndex);
+        Move move;
 
+        do{
+            move = currentPlayer.makeAMove(board);
+        }while (!validateMove(move));
+
+        //update the cell and move
+        move.getCell().setState(CellState.FILLED);
+        move.getCell().setPlayer(currentPlayer);
+
+        //store the move
+        moves.add(move);
+
+        //check winner
+        if(checkWinner(move)){
+            this.setState(GameState.GAME_WON);
+            setWinner(currentPlayer);
+        }else if(moves.size() == board.getSize() * board.getSize()){
+            setState(GameState.DRAW);
+            setWinner(null);
+        }
+
+        //update the current player index
+        currentPlayerIndex = ((currentPlayerIndex + 1) % players.size());
+
+    }
+
+    private boolean validateMove(Move move) {
+        Cell cell = move.getCell();
+        int r = cell.getRowIndex();
+        int c = cell.getColIndex();
+
+        if(r >= board.getSize() || r < 0 || c >= board.getSize() || c < 0 ){
+            System.out.println("Invalid move! Please try again!!");
+            return false;
+        }
+        Cell cellToUpdate = this.board.getGrid().get(r).get(c);
+        move.setCell(cellToUpdate);
+
+        if(!cell.getState().equals(CellState.EMPTY)){
+            System.out.println("Invalid move! Please try again!!");
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean checkWinner(Move move) {
+        for(WinningStrategy strategy : winningStrategies){
+            if(strategy.checkWinner(board, move)){
+                return true;
+            }
+        }
+        return false;
     }
 
     public static GameBuilder builder(){

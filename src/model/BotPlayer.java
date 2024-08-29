@@ -14,7 +14,9 @@ public class BotPlayer extends Player {
     }
 
     @Override
-    public void makeAMove(Board board) {
+    public Move makeAMove(Board board) {
         System.out.println(this.name + "'s move. Bot player move is calculating.");
+        Cell cell = botPlayingStrategy.makeMove(board);
+        return new Move(cell, this);
     }
 }
