@@ -45,5 +45,5 @@ public abstract class Player {
         this.playerType = playerType;
     }
 
-    abstract void makeAMove(Board board);
+    abstract Move makeAMove(Board board);
 }
